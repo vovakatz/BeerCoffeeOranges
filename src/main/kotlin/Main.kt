@@ -3,8 +3,6 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import java.util.*
 import java.util.ArrayList
 import java.util.regex.Pattern
@@ -14,8 +12,8 @@ class Main {
     companion object {
 
         var threadCount = 0
-        var data = Collections.synchronizedList(mutableListOf<JSONObject>())
-        var data1 = Collections.synchronizedList(mutableListOf<SensorData>())
+        //var data = Collections.synchronizedList(mutableListOf<JSONObject>())
+        var data = Collections.synchronizedList(mutableListOf<SensorData>())
 
         @JvmStatic fun main(args: Array<String>) {
             for (url in getSensorUrls()) {
@@ -35,9 +33,9 @@ class Main {
                 Thread.sleep(100)
             }
 
-            data = data.sortedWith(compareBy({it.get("level").toString().toInt()},{it.get("@iot.id").toString().toInt()}))
+            data = data.sortedWith(compareBy({it.level},{it.id}))
             val output = data.map {
-                "${it["location"]},${it["@iot.id"]},${it["type"]},${it["level"]}"
+                "$it.location,$it.id,$it.type,$it.level}"
             }
             println(output.joinToString("\n"))
         }
@@ -51,11 +49,7 @@ class Main {
             with(sensorLoc.openConnection() as HttpURLConnection) {
                 BufferedReader(InputStreamReader(inputStream)).use {
                     val response = it.readText()
-                    data1.add(SensorData(response))
-                    val parser = JSONParser()
-                    val jsonObj = parser.parse(response) as JSONObject
-
-                    data.add(jsonObj)
+                    data.add(SensorData(response))
                 }
             }
         }
@@ -100,8 +94,6 @@ class Main {
                     }
                 }
             }
-
-
         }
     }
 }
